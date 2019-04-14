@@ -2,11 +2,18 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
 import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.sql.Statement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.awt.event.ActionEvent;
 
 public class VoterLogin {
@@ -28,6 +35,34 @@ public class VoterLogin {
 			}
 		});
 	}
+	
+	
+	public void connection() {
+		PreparedStatement prepstatement;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/voters?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", "root", "");
+			prepstatement= connection.prepareStatement("SELECT `TC`, `password` FROM `users` WHERE `TC`= ? AND `password`=?");
+			prepstatement.setString(1,textField.getText());
+			prepstatement.setString(2,String.valueOf(passwordField.getPassword()));
+			ResultSet result=prepstatement.executeQuery();
+			if(result.next()) {
+				frmVoterLoginScreen.setVisible(false);
+				voting = new Voting();
+				voting.vote();
+			}
+			else {
+				JOptionPane.showMessageDialog(frmVoterLoginScreen, "Invalid username or password");
+				
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
 	public VoterLogin() {
 		initialize();
 	}
@@ -61,9 +96,8 @@ public class VoterLogin {
 		JButton btnNewButton = new JButton("Login");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				frmVoterLoginScreen.setVisible(false);
-				voting = new Voting();
-				voting.vote();
+			
+				connection();
 			}
 		});
 		btnNewButton.setBounds(161, 199, 95, 24);
