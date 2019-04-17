@@ -9,6 +9,17 @@ import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,6 +33,9 @@ public class VoterLogin {
 	private JTextField textField;
 	private JPasswordField passwordField;
 	private Voting voting;
+
+
+	
 	
 	public void voterLogin() {
 		EventQueue.invokeLater(new Runnable() {
@@ -35,33 +49,6 @@ public class VoterLogin {
 			}
 		});
 	}
-	
-	
-	public void connection() {
-		PreparedStatement prepstatement;
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/voters?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", "root", "");
-			prepstatement= connection.prepareStatement("SELECT `TC`, `password` FROM `users` WHERE `TC`= ? AND `password`=?");
-			prepstatement.setString(1,textField.getText());
-			prepstatement.setString(2,String.valueOf(passwordField.getPassword()));
-			ResultSet result=prepstatement.executeQuery();
-			if(result.next()) {
-				frmVoterLoginScreen.setVisible(false);
-				voting = new Voting();
-				voting.vote();
-			}
-			else {
-				JOptionPane.showMessageDialog(frmVoterLoginScreen, "Invalid username or password");
-				
-			}
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	
 	
 	public VoterLogin() {
 		initialize();
@@ -107,5 +94,65 @@ public class VoterLogin {
 		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		lblNewLabel.setBounds(108, 26, 187, 24);
 		frmVoterLoginScreen.getContentPane().add(lblNewLabel);
+	}
+	
+	public static void writeToFile(String path, byte[] key) throws IOException {
+		File f = new File(path);
+		f.getParentFile().mkdirs();
+
+		FileOutputStream fos = new FileOutputStream(f);
+		fos.write(key);
+		fos.flush();
+		fos.close();
+	}
+	
+	public void connection() {
+		PreparedStatement prepstatement;
+		Statement stmt = null;
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Connection connection = DriverManager.getConnection("jdbc:sqlite:Voters.db");
+			prepstatement= connection.prepareStatement("SELECT `TC`, `password` FROM `users` WHERE `TC`= ? AND `password`=?");
+			prepstatement.setString(1,textField.getText());
+			prepstatement.setString(2,String.valueOf(passwordField.getPassword()));
+			ResultSet result=prepstatement.executeQuery();
+			
+			if(result.next()) {
+				frmVoterLoginScreen.setVisible(false);
+				
+				stmt=connection.createStatement();
+				ResultSet publickey = stmt.executeQuery("SELECT `PublicKey`FROM users WHERE `TC`= ('"+ textField.getText()+"')");
+				if(publickey.getString(1)==null) {
+					
+					KeyPairGenerator keyGen;
+					try {
+						keyGen = KeyPairGenerator.getInstance("RSA");
+						keyGen.initialize(1024);
+					
+						KeyPair pair = keyGen.generateKeyPair();
+						PrivateKey privateKey = pair.getPrivate();
+						PublicKey publicKey = pair.getPublic();
+						stmt.executeUpdate("UPDATE `users` SET `PublicKey`=('"+ publicKey.getEncoded() +"') WHERE `TC`=('"+textField.getText()+"')" );
+						writeToFile("KeyStore/privateKey",privateKey.getEncoded());
+
+						
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}	
+				voting = new Voting();
+				voting.vote();
+			}
+			else {
+				JOptionPane.showMessageDialog(frmVoterLoginScreen, "Invalid username or password");		
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -19,10 +19,13 @@ public class Voting {
 	private JFrame frame;
 	private ButtonGroup buttonGroup; 
 
+
+	
 	public void vote() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					//burda bi deðisiklik olcak
 					Voting window = new Voting();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
