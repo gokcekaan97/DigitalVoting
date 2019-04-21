@@ -26,7 +26,6 @@ public class Voting {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					//burda bi deðisiklik olcak
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -35,6 +34,7 @@ public class Voting {
 		});
 	}
 
+	//parametreli constructor yaz
 
 	public Voting() {
 		initialize();

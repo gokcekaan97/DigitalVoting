@@ -14,15 +14,18 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.channels.Pipe;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -39,7 +42,7 @@ public class VoterLogin {
 	private KeyPair pair;
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
-	
+	private Socket voterSocket;
 	public void voterLogin() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -121,11 +124,16 @@ public class VoterLogin {
 			
 			if(result.next()) {
 				
-				Socket voterSocket = new Socket("localhost",9951);
+				voterSocket = new Socket("localhost",9951);
 				frmVoterLoginScreen.setVisible(false);
 				
 				stmt=connection.createStatement();
 				ResultSet checkPublicKey = stmt.executeQuery("SELECT `PublicKey`FROM users WHERE `TC`= ('"+ textField.getText()+"')");
+				
+				DataOutputStream idOutput1 = new DataOutputStream(voterSocket.getOutputStream());
+				idOutput1.writeBytes(textField.getText()+'\n');
+				idOutput1.flush();
+				
 				if(checkPublicKey.getString(1)==null) {
 					
 					KeyPairGenerator keyGen;
@@ -137,12 +145,19 @@ public class VoterLogin {
 						publicKey = pair.getPublic();
 						System.out.println(publicKey);
 						stmt.executeUpdate("UPDATE `users` SET `PublicKey`=('"+ publicKey.getEncoded() +"') WHERE `TC`=('"+textField.getText()+"')" );
-						connection.close();
 						writeToFile("KeyStore/privateKey",privateKey.getEncoded());
-
+						
+					
 						ObjectOutputStream voterOutputStream= new ObjectOutputStream(voterSocket.getOutputStream());
 						voterOutputStream.writeObject(publicKey.getEncoded());
-						voterSocket.close();
+						voterOutputStream.flush();	
+						
+						DataOutputStream idOutput2 = new DataOutputStream(voterSocket.getOutputStream());
+						idOutput2.writeBytes(textField.getText()+'\n');
+						idOutput2.flush();
+						
+						
+						
 					} catch (NoSuchAlgorithmException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -150,8 +165,16 @@ public class VoterLogin {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}	
+				}
 				
+				ObjectInputStream inPublicKey=new ObjectInputStream(voterSocket.getInputStream());
+				byte[] b = (byte[]) inPublicKey.readObject();
+				X509EncodedKeySpec spec2 = new X509EncodedKeySpec(b);
+				KeyFactory kf = KeyFactory.getInstance("RSA");
+				publicKey = kf.generatePublic(spec2);
+				System.out.println(publicKey);
+				connection.close();
+				voterSocket.close();
 				voting = new Voting();
 				voting.vote();
 			
