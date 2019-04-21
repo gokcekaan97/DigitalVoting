@@ -1,3 +1,4 @@
+package project_VOTE;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -46,21 +47,21 @@ public class Voting {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		buttonGroup = new ButtonGroup();
-		JLabel lblNewLabel = new JLabel("Party A");
-		lblNewLabel.setBounds(77, 73, 69, 39);
-		frame.getContentPane().add(lblNewLabel);
+		JLabel lblPartyA = new JLabel("Party A");
+		lblPartyA.setBounds(77, 73, 69, 39);
+		frame.getContentPane().add(lblPartyA);
 		
-		JLabel lblPartyD = new JLabel("Party B");
-		lblPartyD.setBounds(194, 73, 69, 39);
-		frame.getContentPane().add(lblPartyD);
+		JLabel lblPartyB = new JLabel("Party B");
+		lblPartyB.setBounds(194, 73, 69, 39);
+		frame.getContentPane().add(lblPartyB);
 		
 		JLabel lblPartyC = new JLabel("Party C");
 		lblPartyC.setBounds(315, 73, 69, 39);
 		frame.getContentPane().add(lblPartyC);
 		
-		JLabel lblPartyD_1 = new JLabel("Party D");
-		lblPartyD_1.setBounds(443, 73, 69, 39);
-		frame.getContentPane().add(lblPartyD_1);
+		JLabel lblPartyD = new JLabel("Party D");
+		lblPartyD.setBounds(443, 73, 69, 39);
+		frame.getContentPane().add(lblPartyD);
 		
 		JRadioButton PartyARadioButton = new JRadioButton("");
 		PartyARadioButton.setBounds(87, 119, 26, 23);
@@ -82,8 +83,8 @@ public class Voting {
 		buttonGroup.add(PartyCRadioButton);
 		buttonGroup.add(PartyDRadioButton);
 		
-		JButton button_2 = new JButton("Vote");
-		button_2.addActionListener(new ActionListener() {
+		JButton voteButton = new JButton("Vote");
+		voteButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
 				if(PartyARadioButton.isSelected()) {
@@ -100,7 +101,7 @@ public class Voting {
 				}
 			}
 		});
-		button_2.setBounds(233, 187, 120, 39);
-		frame.getContentPane().add(button_2);
+		voteButton.setBounds(233, 187, 120, 39);
+		frame.getContentPane().add(voteButton);
 	}
 }

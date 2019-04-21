@@ -1,3 +1,4 @@
+package project_VOTE;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -37,10 +38,10 @@ public class AdminLogin {
 		frmAdminPanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmAdminPanel.getContentPane().setLayout(null);
 		
-		JLabel lblUsername = new JLabel("  T.C. No:");
-		lblUsername.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		lblUsername.setBounds(52, 79, 84, 24);
-		frmAdminPanel.getContentPane().add(lblUsername);
+		JLabel lblNationalID = new JLabel("     ID No:");
+		lblNationalID.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		lblNationalID.setBounds(52, 79, 84, 24);
+		frmAdminPanel.getContentPane().add(lblNationalID);
 		
 		textField = new JTextField();
 		textField.setBounds(131, 79, 164, 26);
@@ -56,18 +57,18 @@ public class AdminLogin {
 		passwordField.setBounds(131, 146, 164, 24);
 		frmAdminPanel.getContentPane().add(passwordField);
 		
-		JButton btnNewButton = new JButton("Login");
-		btnNewButton.addActionListener(new ActionListener() {
+		JButton btnLoginButton = new JButton("Login");
+		btnLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
 			}
 		});
-		btnNewButton.setBounds(161, 199, 95, 24);
-		frmAdminPanel.getContentPane().add(btnNewButton);
+		btnLoginButton.setBounds(161, 199, 95, 24);
+		frmAdminPanel.getContentPane().add(btnLoginButton);
 		
-		JLabel lblNewLabel = new JLabel("Admin Panel");
-		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblNewLabel.setBounds(145, 27, 111, 24);
-		frmAdminPanel.getContentPane().add(lblNewLabel);
+		JLabel lblAdminLabel = new JLabel("Admin Panel");
+		lblAdminLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblAdminLabel.setBounds(145, 27, 111, 24);
+		frmAdminPanel.getContentPane().add(lblAdminLabel);
 	}
 }

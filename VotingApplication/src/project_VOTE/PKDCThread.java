@@ -1,3 +1,4 @@
+package project_VOTE;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -20,7 +21,7 @@ public class PKDCThread implements Runnable{
 			
 			try {
 				voterInput = socket.getInputStream();
-				System.out.println("input aldi");
+				System.out.println("Input has been successfully taken.");
 				ObjectInputStream inPublicKey=new ObjectInputStream(socket.getInputStream()) ;
 				byte[] b = (byte[]) inPublicKey.readObject();
 				System.out.println(b);	

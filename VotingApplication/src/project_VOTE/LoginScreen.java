@@ -1,3 +1,4 @@
+package project_VOTE;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -5,6 +6,7 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
+
 import java.awt.Font;
 
 public class LoginScreen {
@@ -36,8 +38,8 @@ public class LoginScreen {
 		frmDigitalVotingSystem.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmDigitalVotingSystem.getContentPane().setLayout(null);
 		
-		JButton btnNewButton = new JButton("Admin Login");
-		btnNewButton.addActionListener(new ActionListener() {
+		JButton btnAdminLoginButton = new JButton("Admin Login");
+		btnAdminLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				frmDigitalVotingSystem.setVisible(false);
 				adminLogin = new AdminLogin();
@@ -45,11 +47,11 @@ public class LoginScreen {
 			
 			}
 		});
-		btnNewButton.setBounds(100, 116, 100, 60);
-		frmDigitalVotingSystem.getContentPane().add(btnNewButton);
+		btnAdminLoginButton.setBounds(100, 116, 100, 60);
+		frmDigitalVotingSystem.getContentPane().add(btnAdminLoginButton);
 		
-		JButton btnNewButton_1 = new JButton("Voter Login");
-		btnNewButton_1.addActionListener(new ActionListener() {
+		JButton btnVoterLoginButton = new JButton("Voter Login");
+		btnVoterLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frmDigitalVotingSystem.setVisible(false);
 				voterlogin = new VoterLogin();
@@ -57,13 +59,13 @@ public class LoginScreen {
 				
 			}
 		});
-		btnNewButton_1.setBounds(100, 208, 100, 60);
-		frmDigitalVotingSystem.getContentPane().add(btnNewButton_1);
+		btnVoterLoginButton.setBounds(100, 208, 100, 60);
+		frmDigitalVotingSystem.getContentPane().add(btnVoterLoginButton);
 		
-		JLabel lblNewLabel = new JLabel("Digital Voting System");
-		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblNewLabel.setBounds(69, 48, 174, 42);
-		frmDigitalVotingSystem.getContentPane().add(lblNewLabel);
+		JLabel lblVotingSystemLabel = new JLabel("Digital Voting System");
+		lblVotingSystemLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblVotingSystemLabel.setBounds(69, 48, 174, 42);
+		frmDigitalVotingSystem.getContentPane().add(lblVotingSystemLabel);
 	}
 
 }

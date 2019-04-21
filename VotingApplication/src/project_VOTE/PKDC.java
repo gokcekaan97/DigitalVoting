@@ -1,3 +1,4 @@
+package project_VOTE;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,20 +14,20 @@ public class PKDC {
 		Socket socket=null;
 	
 		try {
-			serverSocket = serverSocket = new ServerSocket(9961);
+			serverSocket = serverSocket = new ServerSocket(9951);
 		} catch (IOException e1) {
-			System.out.println("port is full");
+			System.out.println("Port is full.");
 		};
 		ExecutorService threads = Executors.newFixedThreadPool(10);
 
 		while (true) {
 			try {		
 				socket = serverSocket.accept();
-				System.out.println("servere baðlandi");
+				System.out.println("Connection established.");
 				PKDCThread PKDCthr = new PKDCThread(socket);
 				threads.execute(PKDCthr);
 			} catch (IOException e) {
-				System.out.println("Connection fail");
+				System.out.println("Connection failed.");
 				System.exit(-1);
 			}
 		

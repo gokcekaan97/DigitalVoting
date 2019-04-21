@@ -1,3 +1,4 @@
+package project_VOTE;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -62,10 +63,10 @@ public class VoterLogin {
 		frmVoterLoginScreen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmVoterLoginScreen.getContentPane().setLayout(null);
 		
-		JLabel lblUsername = new JLabel("  T.C. No:");
-		lblUsername.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		lblUsername.setBounds(52, 79, 84, 24);
-		frmVoterLoginScreen.getContentPane().add(lblUsername);
+		JLabel lblNationalID = new JLabel("     ID No:");
+		lblNationalID.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		lblNationalID.setBounds(52, 79, 84, 24);
+		frmVoterLoginScreen.getContentPane().add(lblNationalID);
 		
 		textField = new JTextField();
 		textField.setBounds(131, 79, 164, 26);
@@ -81,20 +82,20 @@ public class VoterLogin {
 		passwordField.setBounds(131, 146, 164, 24);
 		frmVoterLoginScreen.getContentPane().add(passwordField);
 		
-		JButton btnNewButton = new JButton("Login");
-		btnNewButton.addActionListener(new ActionListener() {
+		JButton btnLoginButton = new JButton("Login");
+		btnLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			
 				connection();
 			}
 		});
-		btnNewButton.setBounds(161, 199, 95, 24);
-		frmVoterLoginScreen.getContentPane().add(btnNewButton);
+		btnLoginButton.setBounds(161, 199, 95, 24);
+		frmVoterLoginScreen.getContentPane().add(btnLoginButton);
 		
-		JLabel lblNewLabel = new JLabel("Digital Voting System");
-		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblNewLabel.setBounds(108, 26, 187, 24);
-		frmVoterLoginScreen.getContentPane().add(lblNewLabel);
+		JLabel lblVoterLabel = new JLabel("Digital Voting System");
+		lblVoterLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblVoterLabel.setBounds(108, 26, 187, 24);
+		frmVoterLoginScreen.getContentPane().add(lblVoterLabel);
 	}
 	
 	public static void writeToFile(String path, byte[] key) throws IOException {
@@ -120,7 +121,7 @@ public class VoterLogin {
 			
 			if(result.next()) {
 				
-				Socket voterSocket = new Socket("localhost",9961);
+				Socket voterSocket = new Socket("localhost",9951);
 				frmVoterLoginScreen.setVisible(false);
 				
 				stmt=connection.createStatement();
