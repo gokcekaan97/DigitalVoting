@@ -13,8 +13,10 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.nio.channels.Pipe;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -33,16 +35,15 @@ public class VoterLogin {
 	private JTextField textField;
 	private JPasswordField passwordField;
 	private Voting voting;
-
-
-	
+	private KeyPair pair;
+	private PrivateKey privateKey;
+	private PublicKey publicKey;
 	
 	public void voterLogin() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					VoterLogin window = new VoterLogin();
-					window.frmVoterLoginScreen.setVisible(true);
+					frmVoterLoginScreen.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -118,24 +119,29 @@ public class VoterLogin {
 			ResultSet result=prepstatement.executeQuery();
 			
 			if(result.next()) {
+				
+				Socket voterSocket = new Socket("localhost",9961);
 				frmVoterLoginScreen.setVisible(false);
 				
 				stmt=connection.createStatement();
-				ResultSet publickey = stmt.executeQuery("SELECT `PublicKey`FROM users WHERE `TC`= ('"+ textField.getText()+"')");
-				if(publickey.getString(1)==null) {
+				ResultSet checkPublicKey = stmt.executeQuery("SELECT `PublicKey`FROM users WHERE `TC`= ('"+ textField.getText()+"')");
+				if(checkPublicKey.getString(1)==null) {
 					
 					KeyPairGenerator keyGen;
 					try {
 						keyGen = KeyPairGenerator.getInstance("RSA");
 						keyGen.initialize(1024);
-					
-						KeyPair pair = keyGen.generateKeyPair();
-						PrivateKey privateKey = pair.getPrivate();
-						PublicKey publicKey = pair.getPublic();
+						pair = keyGen.generateKeyPair();
+						privateKey = pair.getPrivate();
+						publicKey = pair.getPublic();
+						System.out.println(publicKey);
 						stmt.executeUpdate("UPDATE `users` SET `PublicKey`=('"+ publicKey.getEncoded() +"') WHERE `TC`=('"+textField.getText()+"')" );
+						connection.close();
 						writeToFile("KeyStore/privateKey",privateKey.getEncoded());
 
-						
+						ObjectOutputStream voterOutputStream= new ObjectOutputStream(voterSocket.getOutputStream());
+						voterOutputStream.writeObject(publicKey.getEncoded());
+						voterSocket.close();
 					} catch (NoSuchAlgorithmException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -144,8 +150,10 @@ public class VoterLogin {
 						e.printStackTrace();
 					}
 				}	
+				
 				voting = new Voting();
 				voting.vote();
+			
 			}
 			else {
 				JOptionPane.showMessageDialog(frmVoterLoginScreen, "Invalid username or password");		

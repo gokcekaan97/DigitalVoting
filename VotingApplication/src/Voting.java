@@ -26,8 +26,7 @@ public class Voting {
 			public void run() {
 				try {
 					//burda bi deðisiklik olcak
-					Voting window = new Voting();
-					window.frame.setVisible(true);
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

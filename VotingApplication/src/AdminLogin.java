@@ -19,8 +19,7 @@ public class AdminLogin {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					AdminLogin window = new AdminLogin();
-					window.frmAdminPanel.setVisible(true);
+					frmAdminPanel.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

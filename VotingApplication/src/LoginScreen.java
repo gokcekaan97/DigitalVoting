@@ -16,8 +16,7 @@ public class LoginScreen {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					LoginScreen window = new LoginScreen();
-					window.frmDigitalVotingSystem.setVisible(true);
+					frmDigitalVotingSystem.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
