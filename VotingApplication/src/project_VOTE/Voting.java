@@ -153,11 +153,11 @@ public class Voting {
             String msgBase64 = Base64.getEncoder().encodeToString(encrypted_text);
             System.out.println("Base64 Encoded String (Basic) :" + msgBase64);
            
-        	  
             votingSocket = new Socket("localhost", 4214);
             frame.setVisible(false);
             votingSocket.close();
             System.exit(-1);
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
