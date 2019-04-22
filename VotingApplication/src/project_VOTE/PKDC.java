@@ -26,10 +26,9 @@ public class PKDC {
 		} catch (IOException e1) {
 			System.out.println("Port is full.");
 		};
-		ExecutorService threads = Executors.newFixedThreadPool(10);
-
+		
 		while (true) {		
-			
+			// THREADLER SONLANMIYOR  
 			try {		
 				socket = PKDCserverSocket.accept();
 				System.out.println("Connection established.");
@@ -38,7 +37,8 @@ public class PKDC {
 				
 				if(publicKeyStorage.containsKey(id)==false) {
 				PKDCThread PKDCthr = new PKDCThread(socket,publicKeyStorage);
-				threads.execute(PKDCthr);
+				Thread PKDCThread = new Thread(PKDCthr);
+				PKDCThread.start();
 				}
 				
 				if(id.equals("0"+'\n')) {
@@ -49,7 +49,7 @@ public class PKDC {
 					ObjectOutputStream VSKeyOutputStream= new ObjectOutputStream(socket.getOutputStream());
 					VSKeyOutputStream.writeObject(publicKeyStorage.get("0"+'\n').getEncoded());
 				}
-				
+		   
 				
 			} catch (IOException e) {
 				System.out.println("Connection failed.");

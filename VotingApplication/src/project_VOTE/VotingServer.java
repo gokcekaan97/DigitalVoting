@@ -10,6 +10,8 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VotingServer {
 	private static PublicKey publicKey;
@@ -17,8 +19,10 @@ public class VotingServer {
 	private	static KeyPair pair;
 	private	static PrivateKey privateKey;
 	private static Socket PKDCsocket=null;
+	private static Socket Votingsocket=null;
+	private static ServerSocket VotingServerSocket=null;
 	public static void main (String args[]) {
-
+		ExecutorService threads = Executors.newFixedThreadPool(10);
 		try {
 			keyGen = KeyPairGenerator.getInstance("RSA");
 		} catch (NoSuchAlgorithmException e) {
@@ -38,28 +42,33 @@ public class VotingServer {
 			
 			ObjectOutputStream AdminOutputStream= new ObjectOutputStream(PKDCsocket.getOutputStream());
 			AdminOutputStream.writeObject(publicKey.getEncoded());
-			AdminOutputStream.flush();
 			
 			DataOutputStream idOutput2 = new DataOutputStream(PKDCsocket.getOutputStream());
 			idOutput2.writeBytes("0"+'\n');
 			
-			
+		
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 		
 		try {
-			PKDCsocket.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            VotingServerSocket= new ServerSocket(4214);
+            while (true) {
+            try {
+                Votingsocket = VotingServerSocket.accept();
+                System.out.println("Connection established.");
+                VotingServerThread VSthr = new VotingServerThread(Votingsocket);
+                threads.execute(VSthr);
+            } catch (IOException e) {
+                System.out.println("Connection failed.");
+                System.exit(-1);
+            }
+        }
+        } catch (IOException e1) {
+            System.out.println("Port is full.");
+        };
 		
-	/*	ServerSocket VotingServerSocket=null;
-		try {
-			VotingServerSocket= new ServerSocket(7763);
-		} catch (IOException e1) {
-			System.out.println("Port is full.");
-		};*/
+
 	}
 }

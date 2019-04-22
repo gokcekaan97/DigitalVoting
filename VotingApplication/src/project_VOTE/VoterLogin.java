@@ -150,11 +150,10 @@ public class VoterLogin {
 					
 						ObjectOutputStream voterOutputStream= new ObjectOutputStream(voterSocket.getOutputStream());
 						voterOutputStream.writeObject(publicKey.getEncoded());
-						voterOutputStream.flush();	
+
 						
 						DataOutputStream idOutput2 = new DataOutputStream(voterSocket.getOutputStream());
 						idOutput2.writeBytes(textField.getText()+'\n');
-						idOutput2.flush();
 						
 						
 						
@@ -168,14 +167,10 @@ public class VoterLogin {
 				}
 				
 				ObjectInputStream inPublicKey=new ObjectInputStream(voterSocket.getInputStream());
-				byte[] b = (byte[]) inPublicKey.readObject();
-				X509EncodedKeySpec spec2 = new X509EncodedKeySpec(b);
-				KeyFactory kf = KeyFactory.getInstance("RSA");
-				publicKey = kf.generatePublic(spec2);
-				System.out.println(publicKey);
-				connection.close();
+				byte[] encodedVSPK = (byte[]) inPublicKey.readObject();
 				voterSocket.close();
-				voting = new Voting();
+				connection.close();
+				voting = new Voting(publicKey.getEncoded());
 				voting.vote();
 			
 			}

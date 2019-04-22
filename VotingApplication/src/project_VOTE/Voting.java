@@ -5,6 +5,8 @@ import javax.swing.JFrame;
 import java.awt.BorderLayout;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.Socket;
 import java.awt.event.ActionEvent;
 import javax.swing.JRadioButton;
 import javax.swing.JTree;
@@ -18,8 +20,9 @@ import javax.swing.ButtonGroup;
 public class Voting {
 
 	private JFrame frame;
-	private ButtonGroup buttonGroup; 
-
+	private ButtonGroup buttonGroup;
+	private Socket votingSocket; 
+	
 
 	
 	public void vote() {
@@ -34,14 +37,24 @@ public class Voting {
 		});
 	}
 
-	//parametreli constructor yaz
+	public Voting(byte[] publicKey) {
+        initialize(publicKey);
+    }
 
-	public Voting() {
-		initialize();
-	}
+	public void sendVote() {
+        try {
+            votingSocket = new Socket("localhost", 4214);
+            frame.setVisible(false);
+            votingSocket.close();
+            System.exit(-1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+       
+    }
+	
 
-
-	private void initialize() {
+	private void initialize(byte[] publicKey) {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 650, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -88,20 +101,23 @@ public class Voting {
 			public void actionPerformed(ActionEvent e) {
 				
 				if(PartyARadioButton.isSelected()) {
-					
+					sendVote();
 				}
 				else if(PartyBRadioButton.isSelected()) {
-					
+					sendVote();
 				}
 				else if(PartyCRadioButton.isSelected()) {
-					
+					sendVote();
 				}
 				else if(PartyDRadioButton.isSelected()) {
-					
+					sendVote();
 				}
 			}
 		});
 		voteButton.setBounds(233, 187, 120, 39);
 		frame.getContentPane().add(voteButton);
+		frame.setVisible(true);
 	}
+	
+	
 }

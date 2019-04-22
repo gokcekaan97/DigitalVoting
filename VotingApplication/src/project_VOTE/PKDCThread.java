@@ -16,7 +16,8 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PKDCThread implements Runnable{
+public class PKDCThread implements Runnable{	
+	
 	private String id;
 	private Socket socket;
 	private PublicKey publicKey;
@@ -37,13 +38,13 @@ public class PKDCThread implements Runnable{
 				publicKey = kf.generatePublic(spec2);
 				System.out.println(publicKey);
 				
-				BufferedReader inID = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				
+				DataInputStream inID = new DataInputStream(socket.getInputStream());
 				id = (inID.readLine()+ '\n');
 				System.out.print(id);
 				System.out.println("Input has been successfully taken.");
 
 				publicKeyStorage.put(id, publicKey);
-				
 				
 				
 			} catch (IOException e) {
@@ -59,8 +60,13 @@ public class PKDCThread implements Runnable{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		 finally {
-		        	 lock.unlock();
+		 finally {	
+			 		try {
+						socket.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+		  lock.unlock();
 		         }
 		
 	}
