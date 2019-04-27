@@ -146,7 +146,7 @@ public class VoterLogin {
 						publicKey = pair.getPublic();
 						System.out.println(publicKey);
 						byte [] encodedKey=publicKey.getEncoded();
-						stmt.executeUpdate("UPDATE `users` SET `PublicKey`=('"+ encodedKey +"') WHERE `TC`=('"+textField.getText()+"')" );
+						stmt.executeUpdate("UPDATE `users` SET `PublicKey`='PK is created' WHERE `TC`=('"+textField.getText()+"')" );
 						writeToFile("KeyStore"+textField.getText()+"/privateKey",privateKey.getEncoded());
 
 						ObjectOutputStream voterOutputStream= new ObjectOutputStream(voterPKDCSocket.getOutputStream());
@@ -165,10 +165,11 @@ public class VoterLogin {
 				ObjectInputStream inPublicKey=new ObjectInputStream(voterPKDCSocket.getInputStream());
 				byte[] encodedVSPK = (byte[]) inPublicKey.readObject();
 				String s = textField.getText();
+				connection.close();
 				voting = new Voting(encodedVSPK,textField.getText());
 				voting.vote();
 				voterPKDCSocket.close();
-				connection.close();
+				
 			}
 			else {
 				JOptionPane.showMessageDialog(frmVoterLoginScreen, "Invalid username or password");		

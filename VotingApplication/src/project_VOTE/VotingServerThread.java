@@ -14,6 +14,11 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Base64;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -32,6 +37,7 @@ public class VotingServerThread implements Runnable {
 	private Cipher cipher;
 	private byte[] Vote;
 	private PrivateKey privateKey;
+	private ResultSet VoteCount;
 	private final static Lock lock = new ReentrantLock();
 
 	public VotingServerThread(Socket Votingsocket, Socket PKDCsocket, byte[] VSprivateKey) {
@@ -42,7 +48,11 @@ public class VotingServerThread implements Runnable {
 
 	public void run() {
 		lock.lock();
+		Connection connection = null;
 		try {
+			Class.forName("org.sqlite.JDBC");
+			connection = DriverManager.getConnection("jdbc:sqlite:VoteRepository.db");
+			Statement stmt=connection.createStatement();
 			ObjectInputStream EncryptedVote = new ObjectInputStream(Votingsocket.getInputStream());
 			byte[] Encrypted_Vote = (byte[]) EncryptedVote.readObject();
 			ObjectInputStream Signature = new ObjectInputStream(Votingsocket.getInputStream());
@@ -85,9 +95,17 @@ public class VotingServerThread implements Runnable {
 					cipher.init(Cipher.DECRYPT_MODE, privateKey);
 					Vote = cipher.doFinal(Encrypted_Vote);
 					
-					System.out.println(new String(Vote));
-				//	String msgBase64 = Base64.getEncoder().encodeToString(Vote);
-				//	System.out.println("Base64 Encoded String (Basic) :" + msgBase64);
+					String partyName=new String(Vote);
+					VoteCount=stmt.executeQuery("Select VoteCount From Vote Where PartyName=('"+partyName +"')");
+					
+					int temp;
+					if (VoteCount.next()) {
+						temp = VoteCount.getInt("VoteCount");
+						temp=temp+1;
+						stmt.executeUpdate("Update Vote Set VoteCount=('"+temp+"') WHERE PartyName=('"+partyName+"')" );
+					}
+					
+					
 					
 				} catch (InvalidKeyException e) {
 					// TODO Auto-generated catch block
@@ -108,6 +126,7 @@ public class VotingServerThread implements Runnable {
 				
 				
 			}
+		connection.close();	
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -115,9 +134,13 @@ public class VotingServerThread implements Runnable {
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		} finally {
+			
 			lock.unlock();
-
+			
 		}
 	}
 

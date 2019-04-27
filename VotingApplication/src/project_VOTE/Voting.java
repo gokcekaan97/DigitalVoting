@@ -6,6 +6,7 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -15,10 +16,16 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Base64;
 import java.awt.event.ActionEvent;
 import javax.swing.JRadioButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.crypto.Cipher;
 import javax.swing.ButtonGroup;
 
@@ -103,19 +110,19 @@ public class Voting {
 			public void actionPerformed(ActionEvent e) {
 				
 				if(PartyARadioButton.isSelected()) {
-					party="party1";
+					party="Party1";
 					sendVote(party,encodedVSPK,id);
 				}
 				else if(PartyBRadioButton.isSelected()) {
-					party="party2";
+					party="Party2";
 					sendVote(party,encodedVSPK,id);
 				}
 				else if(PartyCRadioButton.isSelected()) {
-					party="party3";
+					party="Party3";
 					sendVote(party,encodedVSPK,id);
 				}
 				else if(PartyDRadioButton.isSelected()) {
-					party="party4";
+					party="Party4";
 					sendVote(party,encodedVSPK,id);
 				}
 			}
@@ -127,56 +134,90 @@ public class Voting {
 	
 	
 	public void sendVote(String party,byte [] encodedVSPK,String id) {
+		Statement stmt = null;
+		Connection connection=null;
+		ResultSet checkSigniture=null;
+		try {
+			Class.forName("org.sqlite.JDBC");	
+			connection = DriverManager.getConnection("jdbc:sqlite:Voters.db");
+			stmt=connection.createStatement();
+			checkSigniture = stmt.executeQuery("SELECT `voteisdone`FROM users WHERE `TC`= ('"+ id +"')");
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
         try {
-        	
-        	
-        	byte[] keyBytes = Files.readAllBytes(new File("KeyStore"+id+"/privateKey").toPath());
-            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            PrivateKey privateKey = kf.generatePrivate(spec);
+			if (checkSigniture.getString(1)==null) {
+				try {
 
-            //VOTING SERVERIN KEYIYLE SIFRELEDIK
-            X509EncodedKeySpec spec2 = new X509EncodedKeySpec(encodedVSPK);
-            PublicKey publicKey = kf.generatePublic(spec2);
-        	
-        	cipher = Cipher.getInstance("RSA");
-        	cipher.init(Cipher.ENCRYPT_MODE, publicKey); 
-        	
-        	plain_text = party.getBytes("UTF-8");
-        	//bu karþýya gidicek
-        	encrypted_text = cipher.doFinal(plain_text);
+					byte[] keyBytes = Files.readAllBytes(new File("KeyStore" + id + "/privateKey").toPath());
+					PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+					KeyFactory kf = KeyFactory.getInstance("RSA");
+					PrivateKey privateKey = kf.generatePrivate(spec);
 
-            MessageDigest md = MessageDigest.getInstance("SHA-512");
-            byte[] hashInBytes = md.digest(encrypted_text);	
-            
-            //signiture METHODUNA DEGISIM YAPACAGIZ
-            cipher = Cipher.getInstance("RSA");
-        	cipher.init(Cipher.ENCRYPT_MODE, privateKey);
-            encrypted_hash=cipher.doFinal(hashInBytes);
-            
-            String msgBase64 = Base64.getEncoder().encodeToString(encrypted_text);
-            System.out.println("Base64 Encoded String (Basic) :" + msgBase64);
-           
-            votingSocket = new Socket("localhost", 4214);
-            ObjectOutputStream EncryptedText=new ObjectOutputStream(votingSocket.getOutputStream());
-            EncryptedText.writeObject(encrypted_text);
-            EncryptedText.flush();
-            
-            ObjectOutputStream EncryptedHash=new ObjectOutputStream(votingSocket.getOutputStream());
-            EncryptedHash.writeObject(encrypted_hash);
-            EncryptedText.flush();
-       
-            DataOutputStream idOutput = new DataOutputStream(votingSocket.getOutputStream());
-			idOutput.writeBytes(id+'\n');
-			
-            frame.setVisible(false);
-            votingSocket.close();
-            System.exit(-1);
-            
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+					//VOTING SERVERIN KEYIYLE SIFRELEDIK
+					X509EncodedKeySpec spec2 = new X509EncodedKeySpec(encodedVSPK);
+					PublicKey publicKey = kf.generatePublic(spec2);
+
+					cipher = Cipher.getInstance("RSA");
+					cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+
+					plain_text = party.getBytes("UTF-8");
+					//bu karþýya gidicek
+					encrypted_text = cipher.doFinal(plain_text);
+
+					MessageDigest md = MessageDigest.getInstance("SHA-512");
+					byte[] hashInBytes = md.digest(encrypted_text);
+
+					//signiture METHODUNA DEGISIM YAPACAGIZ
+					cipher = Cipher.getInstance("RSA");
+					cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+					encrypted_hash = cipher.doFinal(hashInBytes);
+					
+					stmt.executeUpdate("UPDATE `users` SET `voteisdone`=('" + encrypted_hash + "') WHERE `TC`=('" + id + "')");
+
+					votingSocket = new Socket("localhost", 4214);
+					ObjectOutputStream EncryptedText = new ObjectOutputStream(votingSocket.getOutputStream());
+					EncryptedText.writeObject(encrypted_text);
+					EncryptedText.flush();
+
+					ObjectOutputStream EncryptedHash = new ObjectOutputStream(votingSocket.getOutputStream());
+					EncryptedHash.writeObject(encrypted_hash);
+					EncryptedText.flush();
+
+					DataOutputStream idOutput = new DataOutputStream(votingSocket.getOutputStream());
+					idOutput.writeBytes(id + '\n');
+					
+					JOptionPane.showMessageDialog(frame, "Vote is successfully sent.");
+					frame.setVisible(false);
+					votingSocket.close();
+					connection.close();
+					System.exit(-1);
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				} 
+			}
+			else{
+				JOptionPane.showMessageDialog(frame, "You can't vote twice");
+				frame.setVisible(false);
+				votingSocket.close();
+				connection.close();
+				System.exit(-1);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
        
     }
 		
