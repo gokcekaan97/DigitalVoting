@@ -1,22 +1,40 @@
 package project_VOTE;
 
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
+import org.jfree.chart.*;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+import javax.swing.SwingUtilities;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
 
 public class AdminPanel {
 
 	private JFrame frame;
+	private Connection connection;
+	private Statement stmt;
+	private ResultSet rs;
 
 	/**
 	 * Launch the application.
-	*/
-	public static void main(String[] args) {
+	 */
+	public void adminPanel(){
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					AdminPanel window = new AdminPanel();
-					window.frame.setVisible(true);
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -38,6 +56,54 @@ public class AdminPanel {
 		frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		DefaultCategoryDataset dataset = createDataset();
+
+		JFreeChart chart = createChart(dataset);
+		ChartPanel chartPanel = new ChartPanel(chart);
+		chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+		chartPanel.setBackground(Color.white);
+		frame.getContentPane().add(chartPanel);
+
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		frame.validate();
+
+	}
+
+	private DefaultCategoryDataset createDataset() {
+		DefaultCategoryDataset dataset = null;
+
+		try {
+			Class.forName("org.sqlite.JDBC");
+			connection = DriverManager.getConnection("jdbc:sqlite:VoteRepository.db");
+			stmt = connection.createStatement();
+
+			rs = stmt.executeQuery("Select * From Vote");
+
+			dataset = new DefaultCategoryDataset();
+			while (rs.next()) {
+				dataset.setValue(rs.getInt("VoteCount"), "vote", rs.getString("PartyName"));
+			}
+			connection.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return dataset;
+		
+	}
+
+	private JFreeChart createChart(DefaultCategoryDataset dataset) {
+
+		JFreeChart barChart = ChartFactory.createBarChart("Selection Counter", "Parties", "Vote Counts", dataset,
+				PlotOrientation.VERTICAL, false, true, false);
+
+		return barChart;
 	}
 
 }

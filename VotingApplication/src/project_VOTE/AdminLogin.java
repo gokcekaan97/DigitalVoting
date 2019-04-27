@@ -8,6 +8,11 @@ import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.awt.event.ActionEvent;
 
 public class AdminLogin {
@@ -15,7 +20,9 @@ public class AdminLogin {
 	private JFrame frmAdminPanel;
 	private JTextField textField;
 	private JPasswordField passwordField;
-	
+	private PreparedStatement prepstatement;
+	private ResultSet result;
+	private Connection connection;
 	public void adminLogin() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -32,6 +39,7 @@ public class AdminLogin {
 	}
 
 	private void initialize() {
+		
 		frmAdminPanel = new JFrame();
 		frmAdminPanel.setTitle("Admin Panel");
 		frmAdminPanel.setBounds(100, 100, 450, 300);
@@ -57,9 +65,27 @@ public class AdminLogin {
 		passwordField.setBounds(131, 146, 164, 24);
 		frmAdminPanel.getContentPane().add(passwordField);
 		
+	
+		
 		JButton btnLoginButton = new JButton("Login");
 		btnLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try {
+					Class.forName("org.sqlite.JDBC");
+					connection = DriverManager.getConnection("jdbc:sqlite:Voters.db");
+					prepstatement= connection.prepareStatement("SELECT `id`, `password` FROM `admin` WHERE `id`= ? AND `password`=?");
+					prepstatement.setString(1,textField.getText());
+					prepstatement.setString(2,String.valueOf(passwordField.getPassword()));
+					result=prepstatement.executeQuery();
+					if(result.next()) {
+					frmAdminPanel.setVisible(false);
+					AdminPanel ap= new AdminPanel();
+					ap.adminPanel();
+					}
+					connection.close();
+				} catch (SQLException | ClassNotFoundException e1) {
+					e1.printStackTrace();
+				}
 				
 			}
 		});
