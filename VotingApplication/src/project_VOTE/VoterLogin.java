@@ -42,7 +42,7 @@ public class VoterLogin {
 	private KeyPair pair;
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
-	private Socket voterSocket;
+	private Socket voterPKDCSocket;
 	public void voterLogin() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -88,7 +88,6 @@ public class VoterLogin {
 		JButton btnLoginButton = new JButton("Login");
 		btnLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			
 				connection();
 			}
 		});
@@ -124,15 +123,17 @@ public class VoterLogin {
 			
 			if(result.next()) {
 				
-				voterSocket = new Socket("localhost",9951);
+				voterPKDCSocket = new Socket("localhost",9951);
 				frmVoterLoginScreen.setVisible(false);
 				
 				stmt=connection.createStatement();
 				ResultSet checkPublicKey = stmt.executeQuery("SELECT `PublicKey`FROM users WHERE `TC`= ('"+ textField.getText()+"')");
 				
-				DataOutputStream idOutput1 = new DataOutputStream(voterSocket.getOutputStream());
-				idOutput1.writeBytes(textField.getText()+'\n');
-				idOutput1.flush();
+				
+				DataOutputStream idOutput = new DataOutputStream(voterPKDCSocket.getOutputStream());
+				idOutput.writeBytes(textField.getText()+'\n');
+				idOutput.flush();
+				
 				
 				if(checkPublicKey.getString(1)==null) {
 					
@@ -144,19 +145,14 @@ public class VoterLogin {
 						privateKey = pair.getPrivate();
 						publicKey = pair.getPublic();
 						System.out.println(publicKey);
-						stmt.executeUpdate("UPDATE `users` SET `PublicKey`=('"+ publicKey.getEncoded() +"') WHERE `TC`=('"+textField.getText()+"')" );
-						writeToFile("KeyStore/privateKey",privateKey.getEncoded());
-						
-					
-						ObjectOutputStream voterOutputStream= new ObjectOutputStream(voterSocket.getOutputStream());
-						voterOutputStream.writeObject(publicKey.getEncoded());
+						byte [] encodedKey=publicKey.getEncoded();
+						stmt.executeUpdate("UPDATE `users` SET `PublicKey`=('"+ encodedKey +"') WHERE `TC`=('"+textField.getText()+"')" );
+						writeToFile("KeyStore"+textField.getText()+"/privateKey",privateKey.getEncoded());
 
-						
-						DataOutputStream idOutput2 = new DataOutputStream(voterSocket.getOutputStream());
-						idOutput2.writeBytes(textField.getText()+'\n');
-						
-						
-						
+						ObjectOutputStream voterOutputStream= new ObjectOutputStream(voterPKDCSocket.getOutputStream());
+						voterOutputStream.writeObject(encodedKey);
+						voterOutputStream.flush();
+
 					} catch (NoSuchAlgorithmException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -165,14 +161,14 @@ public class VoterLogin {
 						e.printStackTrace();
 					}
 				}
-				
-				ObjectInputStream inPublicKey=new ObjectInputStream(voterSocket.getInputStream());
+				// MUHTEMELEN 2. giriþte bir hata aliyoruz.
+				ObjectInputStream inPublicKey=new ObjectInputStream(voterPKDCSocket.getInputStream());
 				byte[] encodedVSPK = (byte[]) inPublicKey.readObject();
-				voterSocket.close();
-				connection.close();
-				voting = new Voting(publicKey.getEncoded());
+				String s = textField.getText();
+				voting = new Voting(encodedVSPK,textField.getText());
 				voting.vote();
-			
+				voterPKDCSocket.close();
+				connection.close();
 			}
 			else {
 				JOptionPane.showMessageDialog(frmVoterLoginScreen, "Invalid username or password");		

@@ -1,11 +1,8 @@
 package project_VOTE;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.net.ServerSocket;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -28,23 +25,40 @@ public class PKDCThread implements Runnable{
 		this.publicKeyStorage=publicKeyStorage;
 	}
 	public void run() {
-		lock.lock();
 			try {
-
-				ObjectInputStream inPublicKey=new ObjectInputStream(socket.getInputStream());
-				byte[] b = (byte[]) inPublicKey.readObject();
-				X509EncodedKeySpec spec2 = new X509EncodedKeySpec(b);
-				KeyFactory kf = KeyFactory.getInstance("RSA");
-				publicKey = kf.generatePublic(spec2);
-				System.out.println(publicKey);
-				
 				
 				DataInputStream inID = new DataInputStream(socket.getInputStream());
 				id = (inID.readLine()+ '\n');
+				
+				if(!publicKeyStorage.containsKey(id)) {
+				ObjectInputStream inPublicKey=new ObjectInputStream(socket.getInputStream());
+				byte[] bytePublicKey = (byte[]) inPublicKey.readObject();
+				X509EncodedKeySpec spec2 = new X509EncodedKeySpec(bytePublicKey);
+				KeyFactory kf = KeyFactory.getInstance("RSA");
+				publicKey = kf.generatePublic(spec2);
+				System.out.println(publicKey);
 				System.out.print(id);
 				System.out.println("Input has been successfully taken.");
-
 				publicKeyStorage.put(id, publicKey);
+				
+				}
+	
+				
+				if(id.equals("0"+'\n')) {
+					
+					DataInputStream inID1 = new DataInputStream(socket.getInputStream());
+					id = (inID1.readLine()+ '\n');
+					System.out.println(id + "geldi VSDAN" );
+				
+					ObjectOutputStream VSKeyOutputStream= new ObjectOutputStream(socket.getOutputStream());
+					VSKeyOutputStream.writeObject(publicKeyStorage.get(id).getEncoded());
+					System.out.println("KEY GITTI");
+					
+				}
+				else {
+						ObjectOutputStream VSKeyOutputStream= new ObjectOutputStream(socket.getOutputStream());
+						VSKeyOutputStream.writeObject(publicKeyStorage.get("0"+'\n').getEncoded());
+				}
 				
 				
 			} catch (IOException e) {
@@ -66,7 +80,6 @@ public class PKDCThread implements Runnable{
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-		  lock.unlock();
 		         }
 		
 	}

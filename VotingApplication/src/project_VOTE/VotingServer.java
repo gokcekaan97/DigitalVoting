@@ -1,5 +1,6 @@
 package project_VOTE;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -21,6 +22,8 @@ public class VotingServer {
 	private static Socket PKDCsocket=null;
 	private static Socket Votingsocket=null;
 	private static ServerSocket VotingServerSocket=null;
+	private static String id;
+	private static boolean check =false;
 	public static void main (String args[]) {
 		ExecutorService threads = Executors.newFixedThreadPool(10);
 		try {
@@ -34,31 +37,30 @@ public class VotingServer {
 		publicKey = pair.getPublic();		
 		//SYMMETRIC private key for admin pass 
 	
-		
-		try {
-			PKDCsocket = new Socket("localhost",9951);
-			DataOutputStream idOutput = new DataOutputStream(PKDCsocket.getOutputStream());
-			idOutput.writeBytes("0"+'\n');
-			
-			ObjectOutputStream AdminOutputStream= new ObjectOutputStream(PKDCsocket.getOutputStream());
-			AdminOutputStream.writeObject(publicKey.getEncoded());
-			
-			DataOutputStream idOutput2 = new DataOutputStream(PKDCsocket.getOutputStream());
-			idOutput2.writeBytes("0"+'\n');
-			
-		
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		
+	
 		try {
             VotingServerSocket= new ServerSocket(4214);
             while (true) {
             try {
+        			PKDCsocket = new Socket("localhost",9951);
+        			
+        			DataOutputStream idOutput = new DataOutputStream(PKDCsocket.getOutputStream());
+        			idOutput.writeBytes("0"+'\n');
+        			idOutput.flush();
+        			if(!check) {
+        			ObjectOutputStream AdminOutputStream= new ObjectOutputStream(PKDCsocket.getOutputStream());
+        			AdminOutputStream.writeObject(publicKey.getEncoded());
+        			AdminOutputStream.flush();
+        			check=true;
+            		}
+        		} catch (IOException e) {
+        			e.printStackTrace();
+        	}
+            try {
                 Votingsocket = VotingServerSocket.accept();
+
                 System.out.println("Connection established.");
-                VotingServerThread VSthr = new VotingServerThread(Votingsocket);
+                VotingServerThread VSthr = new VotingServerThread(Votingsocket,PKDCsocket,privateKey.getEncoded());
                 threads.execute(VSthr);
             } catch (IOException e) {
                 System.out.println("Connection failed.");
