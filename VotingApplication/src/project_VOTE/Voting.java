@@ -14,6 +14,7 @@ import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.sql.Connection;
@@ -38,9 +39,9 @@ public class Voting {
 	private Cipher cipher;
 	private byte [] encrypted_text;
 	private byte[] plain_text;
-	private byte[] encrypted_hash;
 	private String id;
 	private byte[] encodedVSPK;
+	private byte[] encrypted_hash;
 	
 	public void vote() {
 		EventQueue.invokeLater(new Runnable() {
@@ -169,27 +170,34 @@ public class Voting {
 					cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
 					plain_text = party.getBytes("UTF-8");
-					//bu karþýya gidicek
-					encrypted_text = cipher.doFinal(plain_text);
+					encrypted_text = cipher.doFinal(plain_text);//þifrelenmiþ veri
 
 					MessageDigest md = MessageDigest.getInstance("SHA-512");
 					byte[] hashInBytes = md.digest(encrypted_text);
-
-					//signiture METHODUNA DEGISIM YAPACAGIZ
 					cipher = Cipher.getInstance("RSA");
 					cipher.init(Cipher.ENCRYPT_MODE, privateKey);
 					encrypted_hash = cipher.doFinal(hashInBytes);
 					
-					stmt.executeUpdate("UPDATE `users` SET `voteisdone`=('" + encrypted_hash + "') WHERE `TC`=('" + id + "')");
-
+					//signature
+					Signature rsa = Signature.getInstance("SHA512withRSA");
+					rsa.initSign(privateKey);
+					rsa.update(encrypted_text);
+					byte[] signature = rsa.sign();
+						
+					stmt.executeUpdate("UPDATE `users` SET `voteisdone`=('" + signature + "') WHERE `TC`=('" + id + "')");
+					System.out.println(encrypted_text);
 					votingSocket = new Socket("localhost", 4214);
 					ObjectOutputStream EncryptedText = new ObjectOutputStream(votingSocket.getOutputStream());
 					EncryptedText.writeObject(encrypted_text);
 					EncryptedText.flush();
+					
+					ObjectOutputStream SignaturedData = new ObjectOutputStream(votingSocket.getOutputStream());
+					SignaturedData.writeObject(signature);
+					SignaturedData.flush();
 
 					ObjectOutputStream EncryptedHash = new ObjectOutputStream(votingSocket.getOutputStream());
-					EncryptedHash.writeObject(encrypted_hash);
-					EncryptedText.flush();
+                    EncryptedHash.writeObject(encrypted_hash);
+                    EncryptedText.flush();
 
 					DataOutputStream idOutput = new DataOutputStream(votingSocket.getOutputStream());
 					idOutput.writeBytes(id + '\n');

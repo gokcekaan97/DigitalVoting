@@ -11,6 +11,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -39,6 +41,7 @@ public class VotingServerThread implements Runnable {
 	private PrivateKey privateKey;
 	private ResultSet VoteCount;
 	private final static Lock lock = new ReentrantLock();
+	
 
 	public VotingServerThread(Socket Votingsocket, Socket PKDCsocket, byte[] VSprivateKey) {
 		this.byteVotingServerPrivateKey = VSprivateKey;
@@ -57,6 +60,8 @@ public class VotingServerThread implements Runnable {
 			byte[] Encrypted_Vote = (byte[]) EncryptedVote.readObject();
 			ObjectInputStream Signature = new ObjectInputStream(Votingsocket.getInputStream());
 			byte[] VoterSignature = (byte[]) Signature.readObject();
+			ObjectInputStream VHData = new ObjectInputStream(Votingsocket.getInputStream());
+			byte[] VoterHashData = (byte[]) VHData.readObject();
 
 			DataInputStream inID = new DataInputStream(Votingsocket.getInputStream());
 			id = (inID.readLine() + '\n');
@@ -78,7 +83,7 @@ public class VotingServerThread implements Runnable {
 				e.printStackTrace();
 			}
 
-			if (equal(Encrypted_Vote, VoterSignature)) {
+			if (equal(Encrypted_Vote, VoterSignature,VoterHashData)) {
 				
 				
 				try {
@@ -144,36 +149,51 @@ public class VotingServerThread implements Runnable {
 		}
 	}
 
-	public boolean equal(byte[] Encrypted_Vote, byte[] VoterSignature) {
-		byte[] decrypted_text;
+	public boolean equal(byte[] Encrypted_Vote, byte[] VoterSignature,byte[] VoterHashData) {
+		byte[] decrypted_text=null;
 		byte[] hashInBytes;
 		String DecryptedSigniture = null;
 		String EncryptedHashedVote = null;
 		try {
 
-			cipher = Cipher.getInstance("RSA");
-			cipher.init(Cipher.DECRYPT_MODE, VoterpublicKey);
-			decrypted_text = cipher.doFinal(VoterSignature);
+			try {
+				decrypted_text=VoterSignature;
+				Signature sig = Signature.getInstance("SHA512withRSA");
+				sig.initVerify(VoterpublicKey);
+				sig.update(Encrypted_Vote);
+				
+				if(sig.verify(VoterSignature)) 
+				{	 
+					 cipher = Cipher.getInstance("RSA");
+					 cipher.init(Cipher.DECRYPT_MODE,VoterpublicKey );
+					 decrypted_text = cipher.doFinal(VoterHashData);  
+				}
 
+			} catch (SignatureException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalBlockSizeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BadPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
 			StringBuilder sb = new StringBuilder();
 			for (byte b : decrypted_text) {
 				sb.append(String.format("%02x", b));
 			}
 			DecryptedSigniture = sb.toString();
-
+			System.out.println(DecryptedSigniture);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (BadPaddingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -188,7 +208,7 @@ public class VotingServerThread implements Runnable {
 				sb2.append(String.format("%02x", b));
 			}
 			EncryptedHashedVote = sb2.toString();
-
+			System.out.println(EncryptedHashedVote);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
