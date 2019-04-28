@@ -29,7 +29,7 @@ public class AdminLogin {
 				try {
 					frmAdminPanel.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					System.out.println("JFrame issue in AdminLogin.");
 				}
 			}
 		});
@@ -77,14 +77,17 @@ public class AdminLogin {
 					prepstatement.setString(1,textField.getText());
 					prepstatement.setString(2,String.valueOf(passwordField.getPassword()));
 					result=prepstatement.executeQuery();
+					//if admin id and password is valid,grants entry to admin panel.
 					if(result.next()) {
 					frmAdminPanel.setVisible(false);
 					AdminPanel ap= new AdminPanel();
 					ap.adminPanel();
 					}
 					connection.close();
-				} catch (SQLException | ClassNotFoundException e1) {
-					e1.printStackTrace();
+				} catch (ClassNotFoundException e1) {
+					System.out.println("Couldn't reach the class with the specified name.(AdminLogin)");
+				} catch (SQLException e1) {
+					System.out.println("Database access issues.(AdminLogin)");
 				}
 				
 			}

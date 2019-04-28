@@ -20,7 +20,7 @@ public class LoginScreen {
 				try {
 					frmDigitalVotingSystem.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					System.out.println("JFrame issue in LoginScreen.");
 				}
 			}
 		});
@@ -41,6 +41,7 @@ public class LoginScreen {
 		JButton btnAdminLoginButton = new JButton("Admin Login");
 		btnAdminLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				//Initializes AdminLogin screen.
 				frmDigitalVotingSystem.setVisible(false);
 				adminLogin = new AdminLogin();
 				adminLogin.adminLogin();
@@ -53,6 +54,7 @@ public class LoginScreen {
 		JButton btnVoterLoginButton = new JButton("Voter Login");
 		btnVoterLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//Initializes VoterLogin screen.
 				frmDigitalVotingSystem.setVisible(false);
 				voterlogin = new VoterLogin();
 				voterlogin.voterLogin();

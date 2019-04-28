@@ -36,7 +36,7 @@ public class AdminPanel {
 				try {
 					frame.setVisible(true);
 				} catch (Exception e) {
-					e.printStackTrace();
+					System.out.println("JFrame issue in AdminPanel");
 				}
 			}
 		});
@@ -70,7 +70,7 @@ public class AdminPanel {
 		frame.validate();
 
 	}
-
+	//Creates dataset for bar chart.
 	private DefaultCategoryDataset createDataset() {
 		DefaultCategoryDataset dataset = null;
 
@@ -78,29 +78,26 @@ public class AdminPanel {
 			Class.forName("org.sqlite.JDBC");
 			connection = DriverManager.getConnection("jdbc:sqlite:VoteRepository.db");
 			stmt = connection.createStatement();
-
 			rs = stmt.executeQuery("Select * From Vote");
-
 			dataset = new DefaultCategoryDataset();
+			//Dataset values will be filled with the data from database.
 			while (rs.next()) {
 				dataset.setValue(rs.getInt("VoteCount"), "vote", rs.getString("PartyName"));
 			}
 			connection.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Database access issues.(AdminPanel)");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Couldn't reach the class with the specified name.(AdminPanel)");
 		}
 		
 		return dataset;
 		
 	}
-
+	//Creates bar chart.
 	private JFreeChart createChart(DefaultCategoryDataset dataset) {
 
-		JFreeChart barChart = ChartFactory.createBarChart("Selection Counter", "Parties", "Vote Counts", dataset,
+		JFreeChart barChart = ChartFactory.createBarChart3D("Selection Counter", "Parties", "Vote Counts", dataset,
 				PlotOrientation.VERTICAL, false, true, false);
 
 		return barChart;

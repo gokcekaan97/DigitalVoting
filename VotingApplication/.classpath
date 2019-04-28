@@ -6,8 +6,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/nofear/Desktop/sqlite-jdbc-3.27.2.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/nofear/Desktop/jcommon-1.0.23.jar"/>
-	<classpathentry kind="lib" path="C:/Users/nofear/Desktop/jfreechart-1.0.19.jar"/>
+	<classpathentry kind="lib" path="C:/Users/nofear/git/DigitalVoting/VotingApplication/external jars/jcommon-1.0.23.jar"/>
+	<classpathentry kind="lib" path="C:/Users/nofear/git/DigitalVoting/VotingApplication/external jars/jfreechart-1.0.19.jar"/>
+	<classpathentry kind="lib" path="C:/Users/nofear/git/DigitalVoting/VotingApplication/external jars/sqlite-jdbc-3.27.2.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
